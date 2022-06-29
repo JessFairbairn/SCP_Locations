@@ -1,0 +1,7 @@
+*.json
+todo
+map.html
+data.db
+.vscode
+__pycache__
+downloads
