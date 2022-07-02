@@ -1,5 +1,6 @@
 import json, os, re
 
+from pandas import DataFrame
 import spacy
 
 SEARCH_PATH = "/home/furby/Code/SCP_Locations/downloads/"
@@ -15,6 +16,8 @@ def main():
     site_dict: dict[str, list] = {}
 
     site_locations: dict[str, list] = {}
+
+    entries = DataFrame(columns = ["site code", "page name", "location name", "sentence"])
 
     file_list = os.listdir(SEARCH_PATH)
     i = 0
@@ -50,10 +53,18 @@ def main():
 
                             # data to save: site name, page name, location name, sentence
 
-                            if match[1] in site_locations:
-                                site_locations[match[1]].append(sent_locations[0].text)
-                            else:
-                                site_locations[match[1]] = [sent_locations[0].text]
+                            # if match[1] in site_locations:
+                            #     site_locations[match[1]].append(sent_locations[0].text)
+                            # else:
+                            #     site_locations[match[1]] = [sent_locations[0].text]
+                            new_row = {
+                                "site code": match[1],
+                                "page name": fname,
+                                "location name": sent_locations[0],
+                                "sentence": sent.text,
+                                "site long name": match[0]
+                            }
+                            entries = entries.append(new_row, ignore_index=True)
 
             for site_name in sites_in_file:
                 if site_name in site_dict:
@@ -67,8 +78,9 @@ def main():
         with open('site_stories_dict.json', 'w') as list_file:
             list_file.write(json.dumps(site_dict))
 
-        with open('site_locations_dict.json', 'w') as list_file:
-            list_file.write(json.dumps(site_locations))
+        # with open('site_locations_dict.json', 'w') as list_file:
+        #     list_file.write(json.dumps(site_locations))
+        entries.to_csv("site_locations.csv")
 
 def _filter_location_list(location_list: list[str]) -> list[str]:
     LOCATION_BLACKLIST = ["euclid", "earth", "oneiroi", "thaumiel", "anomaly", "scp", "site"]
