@@ -30,8 +30,14 @@ with sqlite3.connect("data.db") as conn:
             continue
         site_long_name = row["site long name"]
         source_sentence = row["sentence"]
+
+        popup = folium.Popup(
+            f"""{site_long_name}<br/><i>{source_sentence}</i>
+            <br>from <a href="https://www.scp-wiki.net/{row["page name"]}">{row["page name"]}</a> """,
+            max_width=500
+        )
         folium.Marker(location=location,
-                        popup = f"{site_long_name}<br/><i>{source_sentence}</i>",
+                        popup = popup,
                         tooltip=row["location name"])\
             .add_to(marker_cluster)
 
