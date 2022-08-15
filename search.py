@@ -17,7 +17,7 @@ def main():
 
     site_locations: dict[str, list] = {}
 
-    entries = DataFrame(columns = ["site code", "page name", "location name", "sentence"])
+    entries = DataFrame(columns = ["site code", "site long name", "page name", "location name", "sentence"])
 
     file_list = os.listdir(SEARCH_PATH)
     i = 0
@@ -26,6 +26,7 @@ def main():
             i+=1
             print(f"Scanning file {i} of {len(file_list)}", end='\r')
             sites_in_file = set()
+            potential_entries = {}
 
             with open(SEARCH_PATH + fname) as scp_file:
                 for line in scp_file.readlines():
@@ -59,12 +60,23 @@ def main():
                             #     site_locations[match[1]] = [sent_locations[0].text]
                             new_row = {
                                 "site code": match[1],
+                                "site long name": match[0],
                                 "page name": fname,
                                 "location name": sent_locations[0],
                                 "sentence": sent.text,
-                                "site long name": match[0]
                             }
-                            entries = entries.append(new_row, ignore_index=True)
+                            try:
+                                potential_entries[new_row["site code"]].append(new_row)
+                            except KeyError:
+                                potential_entries[new_row["site code"]] = [new_row]
+
+            for site_code, site_sentences in potential_entries.items():
+                # WARNING: .append is getting deprecated, change to .concat
+                if len(site_sentences) == 1:
+                    entries = entries.append(site_sentences[0], ignore_index=True)
+                else:
+                    # TODO: loop through and save them all
+                    entries = entries.append(site_sentences[0], ignore_index=True)
 
             for site_name in sites_in_file:
                 if site_name in site_dict:
@@ -83,7 +95,7 @@ def main():
         entries.to_csv("site_locations.csv")
 
 def _filter_location_list(location_list: list[str]) -> list[str]:
-    LOCATION_BLACKLIST = ["euclid", "earth", "oneiroi", "thaumiel", "anomaly", "scp", "site"]
+    LOCATION_BLACKLIST = ["euclid", "earth", "oneiroi", "thaumiel", "anomaly", "scp", "site", "redacted", "anomalous", "d-"]
     for blacklisted_item in LOCATION_BLACKLIST:
         location_list = list(filter(lambda location: blacklisted_item not in location.text.lower() , location_list))
 
