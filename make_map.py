@@ -18,7 +18,7 @@ geolocator = Nominatim(user_agent="example app")
 
 df = pd.read_csv("site_locations.csv")
 
-map = folium.Map(zoom_start=2)
+map = folium.Map(zoom_start=3)
 marker_cluster = MarkerCluster().add_to(map)
 
 with sqlite3.connect("data.db") as conn:
