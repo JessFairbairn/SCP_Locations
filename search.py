@@ -15,8 +15,6 @@ def main():
 
     site_dict: dict[str, list] = {}
 
-    site_locations: dict[str, list] = {}
-
     entries = DataFrame(columns = ["site code", "site long name", "page name", "location name", "sentence"])
 
     file_list = os.listdir(SEARCH_PATH)
@@ -84,6 +82,7 @@ def main():
                 else:
                     site_dict[site_name] = [fname]
     finally:
+        print('-----------------------------------------------------')
         print(f'{len(site_dict)} sites found')
         # print(site_dict.keys())
 
@@ -95,7 +94,10 @@ def main():
         entries.to_csv("site_locations.csv")
 
 def _filter_location_list(location_list: list[str]) -> list[str]:
-    LOCATION_BLACKLIST = ["euclid", "earth", "oneiroi", "thaumiel", "anomaly", "scp", "site", "redacted", "anomalous", "d-"]
+    LOCATION_BLACKLIST = [
+        "euclid", "earth", "oneiroi", "thaumiel", "anomaly", "scp", "site", "redacted", "anomalous", "d-", "goi-", "poi-"
+    ]
+
     for blacklisted_item in LOCATION_BLACKLIST:
         location_list = list(filter(lambda location: blacklisted_item not in location.text.lower() , location_list))
 
