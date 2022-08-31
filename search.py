@@ -91,7 +91,7 @@ def main():
 
         # with open('site_locations_dict.json', 'w') as list_file:
         #     list_file.write(json.dumps(site_locations))
-        entries.to_csv("site_locations.csv")
+        entries.to_json("site_locations_partial.json", default_handler=str, orient="records")
 
 def _filter_location_list(location_list: list[str]) -> list[str]:
     LOCATION_BLACKLIST = [

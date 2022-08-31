@@ -1,3 +1,4 @@
+import json
 import sqlite3
 
 import pandas as pd
@@ -15,19 +16,21 @@ geolocator = Nominatim(user_agent="example app")
 
 # with open('site_locations_dict.json', 'r') as list_file:
 #         site_list = json.loads(list_file.read())
+with open("site_locations_partial.json") as output_file:
+    site_list = json.load(output_file)
 
-df = pd.read_csv("site_locations.csv")
-
-map = folium.Map(zoom_start=3)
+map = folium.Map(zoom_start=3, )
 marker_cluster = MarkerCluster().add_to(map)
 
 with sqlite3.connect("data.db") as conn:
     create_location_cache_table(conn)
 
-    for index, row in df.iterrows():
+    for row in site_list:
         location = get_coordinates(conn, row["location name"])
         if location is None:
             continue
+        row["lat"] = location[0]
+        row["long"] = location[1]
         site_long_name = row["site long name"]
         source_sentence = row["sentence"]
 
@@ -41,4 +44,7 @@ with sqlite3.connect("data.db") as conn:
                         tooltip=row["location name"])\
             .add_to(marker_cluster)
 
+# df.to_json("site_locations.json", default_handler=str, orient="records")
+with open("site_locations.json", "w") as output_file:
+    json.dump(site_list, output_file)
 map.save("map.html")

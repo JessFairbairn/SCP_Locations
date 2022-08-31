@@ -2,8 +2,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;900&display=swap');
 
 /* Reset */
-html, body {
+:root {
     height: 100%;
+}
+html, body {
     width: 100%;
     margin: 0;
 }
@@ -34,10 +36,37 @@ h1, h2, h3, h4 {
 }
 
 /* Layout */
+
 body {
     padding: 1em;
+    display: flex;
+    flex-direction: column;
 }
 
 #map-wrapper {
     height: 100%;
+    flex-grow: 3;
+}
+
+#content-wrapper {
+    display: flex;
+    position: relative;
+    height: 0; /*weird hack: https://stackoverflow.com/questions/14962468/how-can-i-combine-flexbox-and-vertical-scroll-in-a-full-height-app */
+}
+
+#site-list {
+    display:block;
+    padding:0;
+    width: 10em;
+    overflow-y: scroll;
+}
+
+#site-list > li {
+    display: block;
+    list-style: none;
+    height: 4em;
+}
+
+#site-list > li:hover {
+    background-color: grey;
 }
