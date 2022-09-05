@@ -8,7 +8,7 @@ SEARCH_PATH = "/home/furby/Code/SCP_Locations/downloads/"
 REGEX = re.compile('(?:[sS]ite[ -])(\d+[a-zA-Z]*)')
 
 def main():
-    nlp = spacy.load('en_core_web_lg')
+    nlp = spacy.load('en_core_web_trf')
 
     # sbd = nlp.create_pipe('sentencizer')
     nlp.add_pipe('sentencizer')
@@ -21,6 +21,7 @@ def main():
     i = 0
     try:
         for fname in file_list:
+
             i+=1
             print(f"Scanning file {i} of {len(file_list)}", end='\r')
             sites_in_file = set()
@@ -95,7 +96,7 @@ def main():
 
 def _filter_location_list(location_list: list[str]) -> list[str]:
     LOCATION_BLACKLIST = [
-        "euclid", "earth", "oneiroi", "thaumiel", "anomaly", "scp", "site", "redacted", "anomalous", "d-", "goi-", "poi-"
+        "euclid", "earth", "oneiroi", "thaumiel", "anomaly", "scp", "site", "redacted", "anomalous", "d-", "goi-", "poi-", "oria", "lunar", "moon"
     ]
 
     for blacklisted_item in LOCATION_BLACKLIST:
