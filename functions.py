@@ -50,4 +50,6 @@ def download_article(article_name: str) -> list[int]:
 def _clean_internal_link(url: str) -> str:
     if url.startswith("http"):
         url = urlparse(url).path[1:]
+    elif url.startswith("/"):
+        url=url[1:]
     return url.replace('/','¦')
