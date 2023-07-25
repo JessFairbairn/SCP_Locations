@@ -1,9 +1,9 @@
 import json, os, re
 
-from pandas import DataFrame
+import pandas as pd
 import spacy
 
-SEARCH_PATH = "/home/furby/Code/SCP_Locations/downloads/"
+SEARCH_PATH = "C:/Users/lip21jaf/Code/SCP_Locations/downloads/"
 
 REGEX = re.compile('(?:[sS]ite[ -])(\d+[a-zA-Z]*)')
 
@@ -15,7 +15,7 @@ def main():
 
     site_dict: dict[str, list] = {}
 
-    entries = DataFrame(columns = ["site code", "site long name", "page name", "location name", "sentence"])
+    entries = pd.DataFrame(columns = ["site code", "site long name", "page name", "location name", "sentence"])
 
     file_list = os.listdir(SEARCH_PATH)
     i = 0
@@ -27,7 +27,7 @@ def main():
             sites_in_file = set()
             potential_entries = {}
 
-            with open(SEARCH_PATH + fname) as scp_file:
+            with open(SEARCH_PATH + fname, encoding="utf-8") as scp_file:
                 for line in scp_file.readlines():
                     if not REGEX.search(line):
                         continue
@@ -70,13 +70,18 @@ def main():
                                 potential_entries[new_row["site code"]] = [new_row]
 
             for site_code, site_sentences in potential_entries.items():
-                # WARNING: .append is getting deprecated, change to .concat
-                if len(site_sentences) == 1:
-                    entries = entries.append(site_sentences[0], ignore_index=True)
-                else:
-                    # TODO: loop through and save them all
-                    entries = entries.append(site_sentences[0], ignore_index=True)
+                
+                # if len(site_sentences) == 1:
+                #     entries = entries.append(site_sentences[0], ignore_index=True)
+                    
+                # else:
+                #     # TODO: loop through and save them all
+                #     entries = entries.append(site_sentences[0], ignore_index=True)
 
+                entries = pd.concat([
+                    entries, 
+                    pd.DataFrame(site_sentences[0])]
+                )
             for site_name in sites_in_file:
                 if site_name in site_dict:
                     site_dict[site_name].append(fname)
