@@ -61,7 +61,7 @@ def main():
                                 "site code": match[1],
                                 "site long name": match[0],
                                 "page name": fname,
-                                "location name": sent_locations[0],
+                                "location name": sent_locations[0].text,
                                 "sentence": sent.text,
                             }
                             try:
@@ -80,8 +80,8 @@ def main():
 
                 entries = pd.concat([
                     entries, 
-                    pd.DataFrame(site_sentences[0])]
-                )
+                    pd.DataFrame(site_sentences[0], index=[1])
+                ], ignore_index=True)
             for site_name in sites_in_file:
                 if site_name in site_dict:
                     site_dict[site_name].append(fname)
