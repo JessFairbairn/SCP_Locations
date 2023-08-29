@@ -44,6 +44,24 @@ body {
 #map-wrapper {
     height: 100%;
     flex-grow: 3;
+    position: relative
+}
+
+#toggle-button {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    z-index: 10000;
+    background: black;
+    color:white;
+    border: white solid 2px;
+    border-right: 0;
+    border-radius: 4px 0px 0px 4px;
+    height: 3em;
+}
+
+#toggle-button:hover {
+    background-color: grey;
 }
 
 #map {
@@ -62,6 +80,11 @@ body {
     padding:0;
     width: 10em;
     overflow-y: scroll;
+    transition: ease width 0.5s;
+}
+
+#site-list.collapsed {
+    width: 0;
 }
 
 #site-list > li {

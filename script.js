@@ -38,3 +38,7 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 // const cluster = L.markerCluster().addTo(map);
+
+const TOGGLE_LIST_BUTTON = document.getElementById("toggle-button")
+TOGGLE_LIST_BUTTON.onclick = () => 
+    document.getElementById("site-list").classList.toggle("collapsed");
