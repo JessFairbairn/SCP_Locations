@@ -3,6 +3,8 @@ import json, os, re
 import pandas as pd
 import spacy
 
+from geography import pick_location
+
 SEARCH_PATH = "C:/Users/lip21jaf/Code/SCP_Locations/downloads/"
 
 REGEX = re.compile('(?:[sS]ite[ -])(\d+[a-zA-Z]*)')
@@ -47,6 +49,15 @@ def main():
 
 
                         if sent_locations:
+                            # Pick best location
+                            top_location_name = pick_location(
+                                map(lambda ent: ent.text, sent_locations)
+                            )
+
+                            top_location = next(filter(lambda ent: ent.text == top_location_name, sent_locations))
+
+                            
+
                             print(sent_locations)
                             print(sent)
                             # site_locations[match[1]] = sent_locations[0].text
@@ -61,7 +72,7 @@ def main():
                                 "site code": match[1],
                                 "site long name": match[0],
                                 "page name": fname,
-                                "location name": sent_locations[0].text,
+                                "location name": top_location.text,
                                 "sentence": sent.text,
                             }
                             try:
@@ -97,7 +108,7 @@ def main():
 
         # with open('site_locations_dict.json', 'w') as list_file:
         #     list_file.write(json.dumps(site_locations))
-        entries.to_json("site_locations_partial.json", default_handler=str, orient="records")
+        entries.sort_values(by=["site code"]).to_json("site_locations_partial.json", default_handler=str, orient="records")
 
 def _filter_location_list(location_list: list[str]) -> list[str]:
     LOCATION_BLACKLIST = [
