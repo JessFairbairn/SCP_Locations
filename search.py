@@ -2,12 +2,16 @@ import json, os, re
 
 import pandas as pd
 import spacy
+from spacy.matcher import Matcher
+from spacy.tokens import Span
 
 from geography import pick_location
 
 SEARCH_PATH = "C:/Users/lip21jaf/Code/SCP_Locations/downloads/"
 
 REGEX = re.compile('(?:[sS]ite[ -])(\d+[a-zA-Z]*)')
+
+ENTITY_TYPES = ['GPE', 'LOC']
 
 def main():
     nlp = spacy.load('en_core_web_trf')
@@ -18,6 +22,13 @@ def main():
     site_dict: dict[str, list] = {}
 
     entries = pd.DataFrame(columns = ["site code", "site long name", "page name", "location name", "sentence"])
+
+    pattern = [{"ENT_TYPE": {"IN": ENTITY_TYPES}}, {"ORTH": ","}, {"ENT_TYPE": {"IN": ENTITY_TYPES}}]
+    pattern2 = [{"ENT_TYPE": {"IN": ENTITY_TYPES}}, {"ORTH": ","}, {"ENT_TYPE": {"IN": ENTITY_TYPES}}, {"ORTH": ","}, {"ENT_TYPE": {"IN": ENTITY_TYPES}}]
+    TWO_PART_LOCATION_MATCHER = Matcher(nlp.vocab, validate=True)
+    TWO_PART_LOCATION_MATCHER.add("CompoundLocation", [pattern])
+    THREE_PART_LOCATION_MATCHER = Matcher(nlp.vocab, validate=True)
+    THREE_PART_LOCATION_MATCHER.add("CompoundLocation", [pattern2])
 
     file_list = os.listdir(SEARCH_PATH)
     i = 0
@@ -42,43 +53,63 @@ def main():
 
                         sent_locations = list(
 
-                            filter(lambda ent: ent.label_ == 'GPE' or ent.label_ == 'LOC', sent.ents)
+                            filter(lambda ent: ent.label_ in ENTITY_TYPES, sent.ents)
                         )
 
                         sent_locations = _filter_location_list(sent_locations)
 
 
-                        if sent_locations:
-                            # Pick best location
-                            top_location_name = pick_location(
-                                map(lambda ent: ent.text, sent_locations)
-                            )
+                        if not sent_locations:
+                            continue
+                        
+                        
+                        compound_matches = []
+                        if len(sent_locations) > 1:
+                            matches = TWO_PART_LOCATION_MATCHER(sent)
+                            for match_id, start, end in matches:
+                                # Create the matched span and assign the match_id as a label
+                                span = Span(doc, start+sent.start, end+sent.start, label=match_id)
+                                compound_matches.append(span)
 
-                            top_location = next(filter(lambda ent: ent.text == top_location_name, sent_locations))
-
+                            matches = THREE_PART_LOCATION_MATCHER(sent)
+                            if matches:
+                                compound_matches = [] # three part matches will always override two part matches
+                                for match_id, start, end in matches:
+                                    # Create the matched span and assign the match_id as a label
+                                    span = Span(doc, start+sent.start, end+sent.start, label=match_id)
+                                    compound_matches.append(span)
+                        
+                        if compound_matches:
+                            sent_locations = _filter_redundant_locations(compound_matches, sent_locations)
                             
+                        # Pick best location
+                        top_location_name = pick_location(
+                            map(lambda ent: ent.text, sent_locations)
+                        )
 
-                            print(sent_locations)
-                            print(sent)
-                            # site_locations[match[1]] = sent_locations[0].text
+                        top_location = next(filter(lambda ent: ent.text == top_location_name, sent_locations))
 
-                            # data to save: site name, page name, location name, sentence
+                        print(sent_locations)
+                        print(sent)
+                        # site_locations[match[1]] = sent_locations[0].text
 
-                            # if match[1] in site_locations:
-                            #     site_locations[match[1]].append(sent_locations[0].text)
-                            # else:
-                            #     site_locations[match[1]] = [sent_locations[0].text]
-                            new_row = {
-                                "site code": match[1],
-                                "site long name": match[0],
-                                "page name": fname,
-                                "location name": top_location.text,
-                                "sentence": sent.text,
-                            }
-                            try:
-                                potential_entries[new_row["site code"]].append(new_row)
-                            except KeyError:
-                                potential_entries[new_row["site code"]] = [new_row]
+                        # data to save: site name, page name, location name, sentence
+
+                        # if match[1] in site_locations:
+                        #     site_locations[match[1]].append(sent_locations[0].text)
+                        # else:
+                        #     site_locations[match[1]] = [sent_locations[0].text]
+                        new_row = {
+                            "site code": match[1],
+                            "site long name": match[0],
+                            "page name": fname,
+                            "location name": top_location.text,
+                            "sentence": sent.text,
+                        }
+                        try:
+                            potential_entries[new_row["site code"]].append(new_row)
+                        except KeyError:
+                            potential_entries[new_row["site code"]] = [new_row]
 
             for site_code, site_sentences in potential_entries.items():
                 
@@ -112,13 +143,22 @@ def main():
 
 def _filter_location_list(location_list: list[str]) -> list[str]:
     LOCATION_BLACKLIST = [
-        "euclid", "earth", "oneiroi", "thaumiel", "anomaly", "scp", "site", "redacted", "anomalous", "d-", "goi-", "poi-", "oria", "lunar", "moon"
+        "euclid", "earth", "oneiroi", "thaumiel", "anomaly", "scp", "site", "redacted", "anomalous", "d-", "goi-", "poi-", "oria", "lunar", "moon", "Sloth's Pit",
     ]
 
     for blacklisted_item in LOCATION_BLACKLIST:
         location_list = list(filter(lambda location: blacklisted_item not in location.text.lower() , location_list))
 
     return location_list
+
+def _filter_redundant_locations(compound_matches: list[Span], sent_locations: list[Span]):
+    for compound_span in compound_matches:
+        sent_locations = list(filter(
+            lambda span: span.start < compound_span.start or span.end > compound_span.end,
+            sent_locations
+        ))
+    sent_locations = sent_locations + compound_matches
+    return sent_locations
 
 if __name__ == "__main__":
     main()
