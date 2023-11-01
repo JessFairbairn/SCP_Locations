@@ -22,6 +22,6 @@ with sqlite3.connect("data.db") as conn:
         source_sentence = row["sentence"]
 
 # df.to_json("site_locations.json", default_handler=str, orient="records")
-with open("site_locations.json", "w") as output_file:
+with open("dist/site_locations.json", "w") as output_file:
     json.dump(site_list, output_file)
 # map.save("map.html")
